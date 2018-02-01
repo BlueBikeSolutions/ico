@@ -37,8 +37,8 @@ contract CrowdsaleBase is Haltable {
   /* Post-success callback */
   FinalizeAgent public finalizeAgent;
 
-  /* tokens will be transfered from this address */
-  address public multisigWallet;
+  /* tokens will be transfered from these addresses */
+  address[] public multisigWallets;
 
   /* if the funding goal is not reached, investors may withdraw their funds */
   uint public minimumFundingGoal;
@@ -111,7 +111,7 @@ contract CrowdsaleBase is Haltable {
 
   State public testState;
 
-  function CrowdsaleBase(address _token, PricingStrategy _pricingStrategy, address _multisigWallet, uint _start, uint _end, uint _minimumFundingGoal) {
+  function CrowdsaleBase(address _token, PricingStrategy _pricingStrategy, address[] _multisigWallets, uint _start, uint _end, uint _minimumFundingGoal) {
 
     owner = msg.sender;
 
@@ -119,9 +119,14 @@ contract CrowdsaleBase is Haltable {
 
     setPricingStrategy(_pricingStrategy);
 
-    multisigWallet = _multisigWallet;
-    if(multisigWallet == 0) {
-        throw;
+    multisigWallets = _multisigWallets;
+    if(multisigWallets.length < 1) {
+        throw
+    }
+    for (uint i=0; i<multisigWallets.length - 1; i++) {
+        if(multisigWallets[i] == 0) {
+            throw;
+        }
     }
 
     if(_start == 0) {
@@ -150,6 +155,16 @@ contract CrowdsaleBase is Haltable {
    */
   function() payable {
     throw;
+  }
+
+  /**
+   * Get the wallet being used in this block.
+   * 
+   * @return multisigWallet The wallet being used
+   */
+  function getMultisigWallet() returns(address multisigWallet) {
+      uint idx = block.number % multisigWallets.length
+      return multisigWallets[idx]
   }
 
   /**
@@ -210,7 +225,7 @@ contract CrowdsaleBase is Haltable {
     assignTokens(receiver, tokenAmount);
 
     // Pocket the money, or fail the crowdsale if we for some reason cannot send the money to our multisig
-    if(!multisigWallet.send(weiAmount)) throw;
+    if(!getMultisigWallet().send(weiAmount)) throw;
 
     // Tell us invest was success
     Invested(receiver, weiAmount, tokenAmount, customerId);
@@ -291,20 +306,20 @@ contract CrowdsaleBase is Haltable {
   }
 
   /**
-   * Allow to change the team multisig address in the case of emergency.
+   * Allow to change the team multisig addresses in the case of emergency.
    *
    * This allows to save a deployed crowdsale wallet in the case the crowdsale has not yet begun
    * (we have done only few test transactions). After the crowdsale is going
-   * then multisig address stays locked for the safety reasons.
+   * then multisig addresses stays locked for the safety reasons.
    */
-  function setMultisig(address addr) public onlyOwner {
+  function setMultisigs(address[] addresses) public onlyOwner {
 
     // Change
     if(investorCount > MAX_INVESTMENTS_BEFORE_MULTISIG_CHANGE) {
       throw;
     }
 
-    multisigWallet = addr;
+    multisigWallets = addresses;
   }
 
   /**
