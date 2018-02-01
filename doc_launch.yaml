@@ -224,4 +224,4 @@ kovan:
 
     # As the last action, after successful deployment, set the right token symbol and name so that it shows in a blockchain explorer
     # TODO different name
-    confirm_tx(token.transact({"from": deploy_address}).setTokenInformation("DOC", "DOC"))
+    confirm_tx(token.transact({"from": deploy_address}).setTokenInformation("Duty of Care Token", "DOC"))
