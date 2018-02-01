@@ -43,10 +43,10 @@ contract CrowdsaleBase is Haltable {
   /* if the funding goal is not reached, investors may withdraw their funds */
   uint public minimumFundingGoal;
 
-  /* the UNIX timestamp start date of the crowdsale */
+  /* the start block of the crowdsale */
   uint public startsAt;
 
-  /* the UNIX timestamp end date of the crowdsale */
+  /* the end block of the crowdsale */
   uint public endsAt;
 
   /* the number of tokens already sold through this contract*/
@@ -141,7 +141,7 @@ contract CrowdsaleBase is Haltable {
 
     endsAt = _end;
 
-    // Don't mess the dates
+    // Don't mess the block numbers
     if(startsAt >= endsAt) {
         throw;
     }
@@ -378,8 +378,8 @@ contract CrowdsaleBase is Haltable {
     else if (address(finalizeAgent) == 0) return State.Preparing;
     else if (!finalizeAgent.isSane()) return State.Preparing;
     else if (!pricingStrategy.isSane(address(this))) return State.Preparing;
-    else if (block.timestamp < startsAt) return State.PreFunding;
-    else if (block.timestamp <= endsAt && !isCrowdsaleFull()) return State.Funding;
+    else if (block.number < startsAt) return State.PreFunding;
+    else if (block.number <= endsAt && !isCrowdsaleFull()) return State.Funding;
     else if (isMinimumGoalReached()) return State.Success;
     else if (!isMinimumGoalReached() && weiRaised > 0 && loadedRefund >= weiRaised) return State.Refunding;
     else return State.Failure;
