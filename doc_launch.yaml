@@ -2,21 +2,9 @@ _cam: &cam '0xb2EA4BE7b378231C1FA017fE4f3BBB06705216d1'
 _daniel: &daniel '0x70fC6788493378BDb13ffB7EAAb91BA8fe5d4E87'
 _ricky: &ricky '0x4a8d0df3923ef2b4d6fad62419e1b37edf6c54fd'
 _luke: &luke '0x427C5399C8734fbbfDA641c64dBa5ba8230feFc4'
+_janis: &janis '0xA5ae40e9bc0804Dc676624b175a7BA7B4A825643'
 _nano: &nano '0xE60278F75449AF64E3EAEf4dbd803557615563F0'
-# TODO janus
 
-_ganache: &ganache '0x627306090abaB3A6e1400e9345bC60c78a8BEf57'
-
-_bbsfin: &bbsfin
-  - *cam
-  - *daniel
-  - *nano
-_bbstech: &bbstech
-  - *cam
-  - *daniel
-  - *ricky
-  - *luke
-  - *nano
 
 kovan:
   chain: kovan
@@ -98,23 +86,23 @@ kovan:
       arguments:
         _tranches:
           - 0
-          - 128571428571 #428 TODO *1000 again
+          - 128571428571428
 
           - "{{ to_wei('1400000', 'ether') }}"
-          - 138846153846 #153
+          - 138846153846153
 
           - "{{ to_wei('4000000', 'ether') }}"
-          - 150277777777 #777
+          - 150277777777777
 
           - "{{ to_wei('7600000', 'ether') }}"
-          - 164090909090 #909
+          - 164090909090909
 
           - "{{ to_wei('12000000', 'ether') }}"
-          - 180382352941 #176
+          - 180382352941176
 
           # Dummy milestone marker to mark the end
           # of the array.
-          - "{{ to_wei('99999999999999999', 'ether') }}"
+          - "{{ to_wei('80000000', 'ether') }}"
           - 0
 
     #
@@ -131,8 +119,8 @@ kovan:
         _pricingStrategy: '{{ contracts.pricing_strategy.address }}'
         _multisigWallet: '{{ contracts.multisig.address }}'
         _beneficiary: '{{ contracts.multisig.address }}'
-        _start: 1  # TODO real block
-        _end: 999999999999  # TODO real block
+        _start: 1  # TODO real TIME
+        _end: 999999999999  # TODO real TIME
         _minimumFundingGoal: 0
 
     #
@@ -154,6 +142,7 @@ kovan:
     daniel_addr = '0x70fC6788493378BDb13ffB7EAAb91BA8fe5d4E87'
     ricky_addr = '0x4a8d0df3923ef2b4d6fad62419e1b37edf6c54fd'
     luke_addr = '0x427C5399C8734fbbfDA641c64dBa5ba8230feFc4'
+    janis_addr = '0xA5ae40e9bc0804Dc676624b175a7BA7B4A825643'
     nano_addr = '0xE60278F75449AF64E3EAEf4dbd803557615563F0'
 
     from eth_utils import decode_hex
@@ -171,8 +160,6 @@ kovan:
     sale_tokens = int(all_tokens * 0.8)
 
     # Allow crowdsale contract to sell its token
-    #token.transact({"from": deploy_address}).approve(crowdsale.address, 0)
-    #token.transact({"from": deploy_address}).approve(crowdsale.address, 100000000*10**18)
     confirm_tx(token.transact({'from': deploy_address}).transfer(multisig.address, all_tokens))
     approve_zero_tx = token._prepare_transaction('approve', (crowdsale.address, 0))
     approve_all_tx = token._prepare_transaction('approve', (crowdsale.address, sale_tokens))
@@ -211,7 +198,7 @@ kovan:
     # Set the max that a single addr can buy
     tx_ids.append(crowdsale.transact({"from": deploy_address}).setMaximumPurchaseFraction(10))  # 476 is good for ganache test
     # TODO janus
-    multisig_owners = [cam_addr, daniel_addr, nano_addr, ricky_addr]  # TODO remove ricky
+    multisig_owners = [cam_addr, daniel_addr, janis_addr, nano_addr]
     owner_txes = [multisig._prepare_transaction('addOwner', (addr,)) for addr in multisig_owners]
     #owner_tx_first_id = multisig.call().submitTransaction(multisig.address, 0, owner_txes[0]['data'])
     for tx in owner_txes: tx_ids.append(multisig.transact({'from': deploy_address}).submitTransaction(multisig.address, 0, decode_hex(tx['data'])))
@@ -234,6 +221,7 @@ kovan:
     daniel_addr = '0x70fC6788493378BDb13ffB7EAAb91BA8fe5d4E87'
     ricky_addr = '0x4a8d0df3923ef2b4d6fad62419e1b37edf6c54fd'
     luke_addr = '0x427C5399C8734fbbfDA641c64dBa5ba8230feFc4'
+    janis_addr = '0xA5ae40e9bc0804Dc676624b175a7BA7B4A825643'
     nano_addr = '0xE60278F75449AF64E3EAEf4dbd803557615563F0'
 
     from eth_utils import decode_hex
@@ -243,13 +231,12 @@ kovan:
     assert crowdsale.call().owner().lower() == multisig.address.lower()
     assert crowdsale.call().multisigWallet().lower() == multisig.address.lower()
     assert finalize_agent.call().isSane()
-    # TODO switch to CrowdsaleState.PreFunding
-    #assert crowdsale.call().getState() == CrowdsaleState.PreFunding   # PreFunding for the final, as it is deployed pre-opening
-    assert crowdsale.call().getState() == CrowdsaleState.Funding
+    assert crowdsale.call().getState() == CrowdsaleState.PreFunding   # PreFunding for the final, as it is deployed pre-opening
+    #assert crowdsale.call().getState() == CrowdsaleState.Funding
     assert crowdsale.call().trancheMinTx() == 10
     assert crowdsale.call().maximumPurchaseFraction() == 10
 
-    #assert set(multisig.call().owners(i).lower() for i in range(4)) == {cam_addr, daniel_addr, nano_addr, ricky_addr}
+    assert set(multisig.call().owners(i).lower() for i in range(4)) == {cam_addr, daniel_addr, janis_addr, nano_addr}
 
     tx_gas = 400000
 
