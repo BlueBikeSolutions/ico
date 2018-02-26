@@ -197,12 +197,10 @@ kovan:
 
     # Set the max that a single addr can buy
     tx_ids.append(crowdsale.transact({"from": deploy_address}).setMaximumPurchaseFraction(10))  # 476 is good for ganache test
-    # TODO janus
+
     multisig_owners = [cam_addr, daniel_addr, janis_addr, nano_addr]
     owner_txes = [multisig._prepare_transaction('addOwner', (addr,)) for addr in multisig_owners]
-    #owner_tx_first_id = multisig.call().submitTransaction(multisig.address, 0, owner_txes[0]['data'])
     for tx in owner_txes: tx_ids.append(multisig.transact({'from': deploy_address}).submitTransaction(multisig.address, 0, decode_hex(tx['data'])))
-    #for idx in range(len(owner_txes)): confirm_tx(multisig.transact({'from': deploy_address}).executeTransaction(owner_tx_first_id+idx))
 
 
     tx_ids.append(token.transact({'from': deploy_address}).transferOwnership(multisig.address))
@@ -210,9 +208,6 @@ kovan:
     tx_ids.append(crowdsale.transact({'from': deploy_address}).transferOwnership(multisig.address))
 
     for tx_id in tx_ids: confirm_tx(tx_id)
-
-    #w = ['0xf17f52151EbEF6C7334FAD080c5704D77216b732','0xC5fdf4076b8F3A5357c5E395ab970B5B54098Fef','0x821aEa9a577a9b44299B9c15c88cf3087F3b5544','0x0d1d4e623D10F9FBA5Db95830F7d3839406C6AF2']
-    #for ww in w: confirm_tx(crowdsale.transact({"from": deploy_address}).setKycWhitelist(ww, True))
 
 
   # Sanity check
