@@ -119,8 +119,8 @@ kovan:
         _pricingStrategy: '{{ contracts.pricing_strategy.address }}'
         _multisigWallet: '{{ contracts.multisig.address }}'
         _beneficiary: '{{ contracts.multisig.address }}'
-        _start: 1  # TODO real TIME
-        _end: 999999999999  # TODO real TIME
+        _start: "{{ timestamp(datetime(2018, 2, 28, 9, 00)) }}"
+        _end: "{{ timestamp(datetime(2018, 4, 28, 9, 00)) }}"
         _minimumFundingGoal: 0
 
     #
