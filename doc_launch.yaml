@@ -231,7 +231,7 @@ kovan:
     assert crowdsale.call().trancheMinTx() == 10
     assert crowdsale.call().maximumPurchaseFraction() == 10
 
-    assert set(multisig.call().owners(i).lower() for i in range(4)) == {cam_addr, daniel_addr, janis_addr, nano_addr}
+    assert set(multisig.call().owners(i).lower() for i in range(5)) == {deploy_address.lower(), cam_addr.lower(), daniel_addr.lower(), janis_addr.lower(), nano_addr.lower()}
 
     tx_gas = 400000
 
