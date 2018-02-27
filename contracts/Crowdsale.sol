@@ -140,6 +140,9 @@ contract Crowdsale is CrowdsaleBase {
   function buy() public payable {
     invest(msg.sender);
   }
+  function() payable {
+    buy();
+  }
 
   /**
    * Set policy do we need to have server-side customer ids for the investments.
